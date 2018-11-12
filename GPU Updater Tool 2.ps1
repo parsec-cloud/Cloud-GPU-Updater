@@ -1,6 +1,7 @@
 ﻿### Written by James Stringer for Parsec Cloud Inc ###
 ### http://parsecgaming.com ###
 $TempPath = "C:\ParsecTemp\Drivers"
+Remove-Item -Path $TempPath\* -Force -Recurse
 New-Item -ItemType Directory -Force -Path $TempPath | Out-Null
 #functions for setup
 function installedDriver {
