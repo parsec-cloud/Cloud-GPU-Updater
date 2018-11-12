@@ -37,10 +37,10 @@ Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"
 }
 function isWDDM {
 if ($DriverModel.Contains("WDDM") -eq $True ){write-output "True"}
-else{Write-Output "False - your driver mode will need to be changed to WDDM "} 
+else{Write-Output "False - your driver mode will need to be changed to WDDM to enable Parsec compatibility"} 
 }
 function getRequireNVSMI {
-if ($InstalledGPU.Contains("M60") -eq $true) {write-output "This machine will require an NVIDIA-SMI change after reboot"}
+if ($InstalledGPU.Contains("M60") -eq $true) {write-output "This machine will require an NVIDIA-SMI change after reboot to enable Parsec Compatibility"}
 else{write-output "This GPU does not require a change to WDDM post reboot - Driver will install normally"} 
 }
 function setNVSMI {
