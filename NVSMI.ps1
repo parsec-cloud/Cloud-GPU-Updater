@@ -6,10 +6,13 @@ Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"}
 $nvidiaarg = "--query-gpu=gpu_bus_id --format=csv,noheader"
 $nvidiasmi = "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi"
 $bus_id = Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"
+
 if (GPUCurrentMode -eq "TCC") {
 $outputarg1 = "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi"
 $outputarg2 = "-g $bus_id -dm 0"
 Invoke-Expression "& `"$outputarg1`" $outputarg2"
+Pause
 Restart-Computer
+Pause
 }
 Else {Exit}
