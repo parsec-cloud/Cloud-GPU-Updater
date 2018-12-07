@@ -13,6 +13,5 @@ $outputarg2 = "-g $bus_id -dm 0"
 Invoke-Expression "& `"$outputarg1`" $outputarg2"
 Pause
 Restart-Computer
-Pause
 }
 Else {Exit}
