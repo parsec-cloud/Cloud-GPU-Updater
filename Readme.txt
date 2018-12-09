@@ -3,6 +3,10 @@ This script is made to run on Paperspace P4000, P5000, AWS G3.4xLarge and Azure 
 This script checks NVIDIA.com for updates, and will download and install graphics drivers including
 setting NVIDIA-SMI to the correct value on required GPUs.
 
+Supported Operating Systems
+
+Windows Server 2016
+
 Supported GPUs
 
 Quadro P5000
