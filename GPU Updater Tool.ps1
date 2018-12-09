@@ -89,7 +89,7 @@ Type Y to continue, or N to exit."
 
 
 function webName {
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/GPUID.csv", $($system.Path + "\GPUID.CSV")) 
+(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/Additional%20Files/GPUID.csv", $($system.Path + "\GPUID.CSV")) 
 Import-Csv "$($system.path)\GPUID.csv" -Delimiter ',' | Where-Object DeviceID -like *$($gpu.Device_ID)* | Select-Object -ExpandProperty GPUName
 }
 
@@ -225,7 +225,7 @@ Else {
 }
 
 function setnvsmi {
-(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/NVSMI.ps1", $($system.Path) + "\NVSMI.ps1") 
+(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/Additional%20Files/NVSMI.ps1", $($system.Path) + "\NVSMI.ps1") 
 Unblock-File -Path "$($system.Path)\NVSMI.ps1"
 }
 
