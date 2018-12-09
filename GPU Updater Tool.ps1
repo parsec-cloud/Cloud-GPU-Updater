@@ -1,63 +1,18 @@
-﻿### Written by James Stringer for Parsec Cloud Inc ###
-### http://parsecgaming.com ###
-$TempPath = "C:\ParsecTemp\Drivers"
-Remove-Item -Path $TempPath\* -Force -Recurse
-New-Item -ItemType Directory -Force -Path $TempPath | Out-Null
-#functions for setup
-function installedDriver {
-$nvidiaarg = "-i 0 --query-gpu=driver_version --format=csv,noheader"
-$nvidiasmi = "c:\program files\nvidia corporation\nvsmi\nvidia-smi" 
-Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"
+﻿function installedGPUID {
+Try {(get-wmiobject -query "select DeviceID from Win32_PNPEntity Where (deviceid Like '%PCI\\VEN_10DE%') and (PNPClass = 'Display' or Name = '3D Video Controller')"  | Select-Object DeviceID -ExpandProperty DeviceID).substring(13,8)}
+Catch {return $null}
 }
-function installedGPU {
-$nvidiaarg = "-i 0 --query-gpu=name --format=csv,noheader"
-$nvidiasmi = "c:\program files\nvidia corporation\nvsmi\nvidia-smi" 
-Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"
-} 
-function getPSID {
-if ($InstalledGPU.Contains("P4000") -eq $True) {"73"}
-elseif ($InstalledGPU.Contains("P5000") -eq $True) {"73"}
-elseif ($InstalledGPU.Contains("M4000") -eq $True) {"73"}
-elseif ($InstalledGPU.contains("M60") -eq $True) {"75"}
-elseif ($installedGPU.contains("K520") -eq $True) {"94"}
-else {}
+
+function driverVersion {
+Try {(Get-WmiObject Win32_PnPSignedDriver | where {$_.DeviceName -like "*nvidia*" -and $_.DeviceClass -like "Display"} | Select-Object -ExpandProperty DriverVersion).substring(7,6).replace('.','').Insert(3,'.')}
+Catch {return $null}
 }
-function getPFID {
-if ($InstalledGPU.Contains("P4000") -eq $True) {"840"}
-elseif ($InstalledGPU.Contains("P5000") -eq $True) {"823"}
-elseif ($InstalledGPU.Contains("M4000") -eq $True) {"781"}
-elseif ($InstalledGPU.contains("M60") -eq $true) {"783"}
-elseif ($InstalledGPU.contains("K520") -eq $True) {"704"}
-else {}
+
+function osVersion {
+(Get-WmiObject -class Win32_OperatingSystem).Caption
 }
-function checkModel {
-$nvidiaarg = "-i 0 --query-gpu=driver_model.current --format=csv,noheader"
-$nvidiasmi = "c:\program files\nvidia corporation\nvsmi\nvidia-smi" 
-Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"
-}
-function isWDDM {
-if ($DriverModel.Contains("WDDM") -eq $True ){write-output "True"}
-else{Write-Output "False - your driver mode will need to be changed to WDDM to enable Parsec compatibility"} 
-}
-function getRequireNVSMI {
-if ($InstalledGPU.Contains("M60") -eq $true) {write-output "This machine will require an NVIDIA-SMI change after reboot to enable Parsec Compatibility"}
-else{write-output "This GPU does not require a change to WDDM post reboot - Driver will install normally"} 
-}
-function setNVSMI {
-$nvidiaarg = "--query-gpu=gpu_bus_id --format=csv,noheader"
-$nvidiasmi = "c:\program files\nvidia corporation\nvsmi\nvidia-smi" 
-$bus_id = Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"
-$output1 = 'cd C:\Program Files\NVIDIA Corporation\NVSMI'
-$output2 = "nvidia-smi -g $bus_id -dm 0
-shutdown /r -t 10"
-"$output1 
-$output2" | Out-File -Encoding ASCII -FilePath "C:\ParsecTemp\Drivers\nvidiasmi.bat"
-}
-function setStartup {
-New-Item "HKCU:\Software\Microsoft\Windows\CurrentVersion" -name RunOnce | Out-Null -ErrorAction SilentlyContinue
-New-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce" -name SetSMI -Value "C:\ParsecTemp\Drivers\nvidiasmi.bat" | Out-Null
-}
-function test-PendingReboot{
+
+function requiresReboot{
 if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) { return $true }
 if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) { return $true }
 if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -EA Ignore) { return $true }
@@ -71,103 +26,40 @@ if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -N
  
  return $false
 }
-function rebootLogic {
-if (Test-PendingReboot -eq $true) {
-    if ($InstalledGPU.contains("M60") -eq $false)
-    {Write-Output "This computer needs to reboot in order to finish installing your driver Driver, and will reboot in 10 seconds"
-    start-sleep -s 10
-    Restart-Computer -Force} 
-    ElseIf ($InstalledGPU.contains("M60") -eq $true) {
-    Write-Output "This computer needs to reboot twice in order to correctly install the driver and set WDDM Mode"
-    setnvsmi
-    setstartup
-    start-sleep -s 10
-    Restart-Computer -Force}
-    Else{}
+
+function validDriver {
+test-path -Path "C:\Program Files\NVIDIA Corporation\NVSMI"
 }
-Else {
-    if ($InstalledGPU.contains("M60") -eq $true) {
-    Write-Output "This computer needs to reboot twice in order to correctly install the driver and set WDDM Mode"
-    setnvsmi
-    setstartup
-    start-sleep -s 10
-    Restart-Computer -Force}
-    ElseIf ($InstalledGPU.Contains("M60") -eq $false) {
-    write-output "Your computer is ready to go and does not require a reboot :)"
-    }
-    Else{}
+
+Function webDriver { 
+if ($gpu.supported -eq "No" -or $gpu.Supported -eq "UnOfficial") {"Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
+#Exit
 }
-}
-Function getLatestVersion { 
-if ($psid -eq $null) {Write-Output "This GPU ($InstalledGPU) is not compatible with this tool"
-Exit}
 Else { 
-$url = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $psid + "&pfid=" + $pfid + "&osid=74&lid=1&whql=1&lang=en-us&ctk=0"
-$link = Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing
+$gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
+$link = Invoke-WebRequest -Uri $gpu.URL -Method GET -UseBasicParsing
 $link -match '<td class="gridItem">([^<]+?)</td>' | Out-Null
-$Parseversion = $matches[1]
-$Parseversion
+if (($matches[1] -like "*(*") -eq $true) {$matches[1].split('(')[1].split(')')[0]}
+Else {$matches[1]}
 }
 }
-function downloadDriver {
-$NVIDIADriverList = Invoke-WebRequest -Uri "https://www.nvidia.com/Download/processFind.aspx?psid=""$psid""&pfid=""$pfid""&osid=74&lid=1&whql=1&lang=en-us&ctk=0" -Method GET -UseBasicParsing
-$GetFirstLink = $NVIDIADriverList.Links.Href -match "www.nvidia.com/download/driverResults.aspx*"
-$DownloadURL =$GetFirstLink[0].Substring(2)
-$DownloadPage = Invoke-WebRequest -Uri $DownloadURL -Method GET -UseBasicParsing
-$GetDownloadLink = $DownloadPage.Links.Href -like "/content/driverdownload*"
-$ParsedDLURL = $GetDownloadLink.split('=')[1].split('&')[0]
-$DriverDownloadURL = "http://us.download.nvidia.com" + $ParsedDLURL
-Start-BitsTransfer -Source $DriverDownloadURL -Destination $TempPath
+
+function GPUCurrentMode {
+$nvidiaarg = "-i 0 --query-gpu=driver_model.current --format=csv,noheader"
+$nvidiasmi = "c:\program files\nvidia corporation\nvsmi\nvidia-smi" 
+try {Invoke-Expression "& `"$nvidiasmi`" $nvidiaarg"}
+catch {$null}
 }
-function installDriver {
-$DLpath = Get-ChildItem -Path $temppath -Include *exe* -Recurse | Select-Object -ExpandProperty Name
-$fullpath = "$temppath" + '\' + "$dlpath"
-Start-Process -FilePath $fullpath -ArgumentList "/s /n" -Wait }
-function startUpdate { Write-output "Update now? - (!) Machine will automatically reboot if required (!)"
-$ReadHost = Read-Host "(Y/N)"
-    Switch ($ReadHost) 
-     { 
-       Y {Write-Output `n "Downloading Driver"
-       downloaddriver
-       Write-Output  "Success!"
-       Write-Output `n "Installing Driver, this may take up to 10 minutes and will automatically reboot if required"
-       InstallDriver
-       Write-Output "Success - Driver Installed - Checking if reboot is required"
-       rebootlogic
-       } 
-       N {Write-output "Exiting Scipt"
-       exit} 
-     } 
+
+function queryOS {
+if (($system.OS_Version -like "*Windows 10*") -eq $true) {$gpu.OSID = '57' ; $system.OS_Supported = $false}
+elseif (($system.OS_Version -like "*Windows 8.1*") -eq $true) {$gpu.OSID = "41"; $system.OS_Supported = $false}
+elseif (($system.OS_Version -like "*Server 2016*") -eq $true) {$gpu.OSID = "74"; $system.OS_Supported = $true}
+Else {$system.OS_Supported = $false}
 }
-function confirmcharges {
-Write-Output "Installing NVIDIA Drivers may require 2 reboots in order to install correctly.  
-This means you may lose some play time for completing this driver upgrade.  
-Type Y to continue, or N to exit."
-$ReadHost = Read-Host "(Y/N)"
-    Switch ($ReadHost) 
-       {
-       Y {}
-       N{
-       Write-Output "The upgrade script will now exit"
-       Exit}
-       }
-}
-function run {
-$global:date = Get-Date
-$global:successmessage = "Checked Now - An update is available ($InstalledDriver > $LatestVersion)" 
-$global:NeedUpdate = if ($InstalledDriver -lt $latestversion) {Write-Output $successmessage `n}
-Else {Write-Output "Your PC already has the latest NVIDIA GPU Driver ($LatestVersion) available from nvidia.com."}
-}
-$InstalledDriver = InstalledDriver
-$InstalledGPU = InstalledGPU
-$psid = getpsid
-$pfid = getpfid
-$DriverModel = CheckModel
-$IsWDDM = isWDDM
-$requireNVSMI = GetRequireNvsmi
-$LatestVersion = GetLatestVersion
-$host.PrivateData.ErrorForegroundColor = "Cyan"
-Write-Host -foregroundcolor cyan -BackgroundColor White "
+
+function appmessage {
+$app.Parsec = Write-Host -foregroundcolor cyan "
                                  #############                                 
                                  #############                                 
                                                                                
@@ -182,24 +74,181 @@ Write-Host -foregroundcolor cyan -BackgroundColor White "
                                  #############                                 
                                        
                               ~Parsec GPU Updater~
-"                                      
-confirmcharges
-run
-If ((test-path -Path "C:\Program Files\NVIDIA Corporation\NVSMI") -eq $true) {}
-Else {Write-Output "There is no GPU driver installed"
-Write-Output "Script will close in 10 seconds"
-Start-Sleep -s 10
-Exit
-} 
-Write-output "Installed GPU:"$InstalledGPU`n "Installed GPU Driver" $InstalledDriver`n "Latest GPU driver available from nvidia.com:"$latestversion`n "Currently Running in WDDM:" $IsWDDM`n
-Write-Output $requireNVSMI `n
-write-output "Checking For Updates Available @ $date :"  
-$NeedUpdate
-if ($NeedUpdate.Contains("$successmessage") -eq $true) {
-startupdate
+" 
+$app.FailOS = "Sorry, this Operating system (" + $system.OS_version + ") is not yet supported by this tool."
+$app.FailGPU = "Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
+$app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a non-public driver to enable WDDM features required for Parsec to work. 
+Check your providers support documenation."
+$app.NoDriver = "We detected your system does not have a valid NVIDIA Driver installed"
+$app.UpToDate = "Your PC already has the latest NVIDIA GPU Driver (" + $gpu.Web_Driver + ") available from nvidia.com."
+$app.Success = "Checked Now " + $system.date + " - An update is available (" + $gpu.Driver_Version + " > " + $gpu.Web_Driver + ")" 
+$app.ConfirmCharge = "Installing NVIDIA Drivers may require 2 reboots in order to install correctly.  
+This means you may lose some play time for completing this driver upgrade.  
+Type Y to continue, or N to exit."                                     
 }
-else{}
 
 
+function webName {
+(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/GPUID.csv", $($system.Path + "\GPUID.CSV")) 
+Import-Csv "$($system.path)\GPUID.csv" -Delimiter ',' | Where-Object DeviceID -like *$($gpu.Device_ID)* | Select-Object -ExpandProperty GPUName
+}
+
+function queryGPU {
+if($gpu.Device_ID -eq "DEV_13F2") {$gpu.Name = 'NVIDIA Tesla M60'; $gpu.PSID = '75'; $gpu.PFID = '783'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"} 
+ElseIF($gpu.Device_ID -eq "DEV_118A") {$gpu.Name = 'NVIDIA GRID K520'; $gpu.PSID = '94'; $gpu.PFID = '704'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"} 
+ElseIF($gpu.Device_ID -eq "DEV_1BB1") {$gpu.Name = 'NVIDIA Quadro P4000'; $gpu.PSID = '73'; $gpu.PFID = '840'; $gpu.NV_GRID = $false; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"} 
+Elseif($gpu.Device_ID -eq "DEV_1BB0") {$gpu.Name = 'NVIDIA Quadro P5000'; $gpu.PSID = '73'; $gpu.PFID = '823'; $gpu.NV_GRID = $false; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"}
+Elseif($gpu.Device_ID -eq "DEV_15F8") {$gpu.Name = 'NVIDIA Tesla P100'; $gpu.PSID = '103'; $gpu.PFID = '822'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"}
+Elseif($gpu.Device_ID -eq $null) {$gpu.Supported = "No"; $gpu.Name = "No Device Found"}
+else{$gpu.Supported = "No"; $gpu.Name = webName}
+}
+
+function checkOSSupport {
+If ($system.OS_Supported -eq $false) {$app.FailOS
+Read-Host "Press any key to exit..."
+Exit
+}
+Else {}
+}
+
+function checkGPUSupport{
+If ($gpu.Supported -eq "No") {
+$app.FailGPU
+Read-Host "Press any key to exit..."
+Exit
+}
+ElseIf ($gpu.Supported -eq "UnOfficial") {
+$app.UnOfficialGPU
+Read-Host "Press any key to exit..."
+Exit
+}
+Else{}
+}
+
+function checkDriverInstalled {
+if ($system.Valid_NVIDIA_Driver -eq $False) {
+$app.NoDriver
+}
+Else{}
+}
+
+function confirmcharges {
+$app.confirmcharge
+$ReadHost = Read-Host "(Y/N)"
+    Switch ($ReadHost) 
+       {
+       Y {}
+       N{
+       Write-Output "The upgrade script will now exit"
+       Exit}
+       }
+}
+
+function prepareEnvironment {
+$test = Test-Path -Path $system.path 
+if ($test -eq $true) {
+Remove-Item -path $system.Path -Force
+New-Item -ItemType Directory -Force -Path $system.path | Out-Null}
+Else {
+New-Item -ItemType Directory -Force -Path $system.path | Out-Null
+}
+}
+
+function checkUpdates {
+if ($gpu.Update_Available -eq $true) {$app.success
+startUpdate}
+Else {
+$app.UpToDate
+}
+}
+
+function startUpdate { Write-output "Update now? - (!) Machine will automatically reboot if required (!)"
+$ReadHost = Read-Host "(Y/N)"
+    Switch ($ReadHost) 
+     { 
+       Y {Write-Output `n "Downloading Driver"
+       prepareEnvironment
+       downloaddriver
+       Write-Output  "Success!"
+       Write-Output `n "Installing Driver, this may take up to 10 minutes and will automatically reboot if required"
+       InstallDriver
+       Write-Output "Success - Driver Installed - Checking if reboot is required"
+       rebootlogic
+       } 
+       N {Write-output "Exiting Scipt"
+       exit} 
+     } 
+}
 
 
+function DownloadDriver {
+$Download.Link = Invoke-WebRequest -Uri $gpu.url -Method Get -UseBasicParsing | select @{N='Latest';E={$($_.links.href -match"www.nvidia.com/download/driverResults.aspx*")[0].substring(2)}}
+$download.Direct = Invoke-WebRequest -Uri $download.link.latest -Method Get -UseBasicParsing | select @{N= 'Download'; E={"http://us.download.nvidia.com" + $($_.links.href -match "/content/driverdownload*").split('=')[1].split('&')[0]}}
+(New-Object System.Net.WebClient).DownloadFile($($download.direct.download), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
+}
+
+function installDriver {
+$DLpath = Get-ChildItem -Path $system.path -Include *exe* -Recurse | Select-Object -ExpandProperty Name
+Start-Process -FilePath "$($system.Path)\$dlpath" -ArgumentList "/s /n" -Wait }
+
+$download = @{}
+$app = @{}
+$gpu = @{Device_ID = installedGPUID}
+$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"}
+
+function rebootLogic {
+if ($system.OS_Reboot_Required -eq $true) {
+    if ($GPU.NV_GRID -eq $false)
+    {Write-Output "This computer needs to reboot in order to finish installing your driver Driver, and will reboot in 10 seconds"
+    start-sleep -s 10
+    Restart-Computer -Force} 
+    ElseIf ($GPU.NV_GRID -eq $true) {
+    Write-Output "This computer needs to reboot twice in order to correctly install the driver and set WDDM Mode"
+    setnvsmi
+    setnvsmi-shortcut
+    start-sleep -s 10
+    Restart-Computer -Force}
+    Else{}
+}
+Else {
+    if ($gpu.NV_GRID -eq $true) {
+    Write-Output "This computer needs to reboot twice in order to correctly install the driver and set WDDM Mode"
+    setnvsmi
+    setnvsmi-shortcut
+    start-sleep -s 10
+    Restart-Computer -Force}
+    ElseIf ($gpu.NV_GRID -eq $false) {
+    write-output "Your computer is ready to go and does not require a reboot :)"
+    }
+    Else{}
+}
+}
+
+function setnvsmi {
+(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/NVSMI.ps1", $($system.Path) + "\NVSMI.ps1") 
+Unblock-File -Path "$($system.Path)\NVSMI.ps1"
+}
+
+function setnvsmi-shortcut
+{
+Write-Output "Create NVSMI shortcut"
+$Shell = New-Object -ComObject ("WScript.Shell")
+$ShortCut = $Shell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\NVSMI.lnk")
+$ShortCut.TargetPath="powershell.exe"
+$ShortCut.Arguments='-WindowStyle hidden -ExecutionPolicy Bypass -File "C:\ParsecTemp\Drivers\NVSMI.ps1"'
+$ShortCut.WorkingDirectory = "C:\ParsecTemp\Drivers";
+$ShortCut.WindowStyle = 0;
+$ShortCut.Description = "Create NVSMI shortcut";
+$ShortCut.Save()
+}
+
+
+queryOS
+querygpu
+appmessage
+$app.Parsec
+checkOSSupport
+checkGPUSupport
+checkDriverInstalled
+ConfirmCharges
+checkUpdates
