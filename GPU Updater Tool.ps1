@@ -4,7 +4,6 @@ Try {(get-wmiobject -query "select DeviceID from Win32_PNPEntity Where (deviceid
 Catch {return $null}
 }
 
-
 function driverVersion {
 #Queries WMI to request the driver version, and formats it to match that of a NVIDIA Driver version number (NNN.NN) 
 Try {(Get-WmiObject Win32_PnPSignedDriver | where {$_.DeviceName -like "*nvidia*" -and $_.DeviceClass -like "Display"} | Select-Object -ExpandProperty DriverVersion).substring(7,6).replace('.','').Insert(3,'.')}
@@ -98,7 +97,7 @@ Type Y to continue, or N to exit."
 }
 
 function webName {
-#Gets the unknown GPU name based on a deviceID found in the installedgpuid function
+#Gets the unknown GPU name from a csv based on a deviceID found in the installedgpuid function
 (New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/Additional%20Files/GPUID.csv", $($system.Path + "\GPUID.CSV")) 
 Import-Csv "$($system.path)\GPUID.csv" -Delimiter ',' | Where-Object DeviceID -like *$($gpu.Device_ID)* | Select-Object -ExpandProperty GPUName
 }
@@ -198,7 +197,6 @@ $ReadHost = Read-Host "(Y/N)"
        exit} 
      } 
 }
-
 
 function DownloadDriver {
 #downloads driver from nvidia.com
