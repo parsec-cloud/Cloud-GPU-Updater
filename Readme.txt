@@ -14,7 +14,19 @@ Quadro P4000
 Tesla M60
 GRID K520
 
+Instructions: 
 1. Right click "GPU Updater Tool.ps1" and "Save Link As" to your Desktop 
 2. On your desktop, right click "GPU Updater Tool.ps1" and select "Run with Powershell"
 
 
+Q&A - Will the P100 be supported by this tool?
+
+As soon as NVIDIA Releases publically available WDDM drivers for this GPU, it will be added.  The only drivers that currently work have to be downloaded through a paid enterprise portal.
+
+Q&A - Why aren't Windows 10, 8.1, Server 2012 or 2019 supported
+
+Windows 8.1 and Server 2012
+There is no need currently.
+
+Windows 10 and Server 2019
+When they're generally available on cloud platforms, we will investigate.
