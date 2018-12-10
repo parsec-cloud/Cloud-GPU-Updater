@@ -14,6 +14,7 @@ Quadro P4000
 Tesla M60
 GRID K520
 
+Instructions: 
 1. Right click "GPU Updater Tool.ps1" and "Save Link As" to your Desktop 
 2. On your desktop, right click "GPU Updater Tool.ps1" and select "Run with Powershell"
 
