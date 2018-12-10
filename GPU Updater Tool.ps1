@@ -38,8 +38,10 @@ test-path -Path "C:\Program Files\NVIDIA Corporation\NVSMI"
 
 Function webDriver { 
 #checks the latest available graphics driver from nvidia.com
-if ($gpu.supported -eq "No" -or $gpu.Supported -eq "UnOfficial") {"Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
+if ($gpu.supported -eq "No") {"Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
 Exit
+}
+Elseif ($gpu.Supported -eq "UnOfficial") {"This GPU (" + $gpu.name + ")needs a GRID driver found on the Azure support site" 
 }
 Else { 
 $gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
@@ -199,10 +201,16 @@ $ReadHost = Read-Host "(Y/N)"
 }
 
 function DownloadDriver {
+if (($gpu.supported -eq "UnOfficial") -eq $true) {
+$AzureGRID = Invoke-WebRequest -uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing  
+(New-Object System.Net.WebClient).DownloadFile($($AzureGRID.Links.OuterHtml -like "*GRID*")[0].Split('"')[1].split("'")[0], "C:\ParsecTemp\Drivers\AzureGRID.exe")
+}
+Else {
 #downloads driver from nvidia.com
 $Download.Link = Invoke-WebRequest -Uri $gpu.url -Method Get -UseBasicParsing | select @{N='Latest';E={$($_.links.href -match"www.nvidia.com/download/driverResults.aspx*")[0].substring(2)}}
 $download.Direct = Invoke-WebRequest -Uri $download.link.latest -Method Get -UseBasicParsing | select @{N= 'Download'; E={"http://us.download.nvidia.com" + $($_.links.href -match "/content/driverdownload*").split('=')[1].split('&')[0]}}
 (New-Object System.Net.WebClient).DownloadFile($($download.direct.download), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
+}
 }
 
 function installDriver {
