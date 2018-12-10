@@ -11,6 +11,7 @@ if (GPUCurrentMode -eq "TCC") {
 $outputarg1 = "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi"
 $outputarg2 = "-g $bus_id -dm 0"
 Invoke-Expression "& `"$outputarg1`" $outputarg2"
+Start-Sleep -s 10
 Restart-Computer
 }
 Else {Exit}
