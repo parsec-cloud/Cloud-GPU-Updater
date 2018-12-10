@@ -88,8 +88,7 @@ $app.Parsec = Write-Host -foregroundcolor cyan "
 " 
 $app.FailOS = "Sorry, this Operating system (" + $system.OS_version + ") is not yet supported by this tool."
 $app.FailGPU = "Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
-$app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a non-public driver to enable WDDM features required for Parsec to work. 
-Check your providers support documenation."
+$app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a GRID driver downloaded from the Azure Support Site"
 $app.NoDriver = "We detected your system does not have a valid NVIDIA Driver installed"
 $app.UpToDate = "Your PC already has the latest NVIDIA GPU Driver (" + $gpu.Web_Driver + ") available from nvidia.com."
 $app.Success = "Checked Now " + $system.date + " - An update is available (" + $gpu.Driver_Version + " > " + $gpu.Web_Driver + ")" 
@@ -133,8 +132,6 @@ Exit
 }
 ElseIf ($gpu.Supported -eq "UnOfficial") {
 $app.UnOfficialGPU
-Read-Host "Press any key to exit..."
-Exit
 }
 Else{}
 }
