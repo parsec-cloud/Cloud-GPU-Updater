@@ -20,12 +20,12 @@ GRID K520
 
 Q&A - Will the P100 be supported by this tool?
 
-As soon as NVIDIA Releases publically available drivers for this GPU, it will be added.
+As soon as NVIDIA Releases publically available WDDM drivers for this GPU, it will be added.  The only drivers that currently work have to be downloaded through a paid enterprise portal.
 
 Q&A - Why aren't Windows 10, 8.1, Server 2012 or 2019 supported
 
 Windows 8.1 and Server 2012
-There is no need currently
+There is no need currently.
 
 Windows 10 and Server 2019
 When they're generally available on cloud platforms, we will investigate.
