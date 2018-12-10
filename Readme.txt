@@ -15,9 +15,8 @@ Tesla M60
 GRID K520
 
 Instructions: 
-1. Right click "GPU Updater Tool.ps1" and "Save Link As" to your Desktop 
-2. On your desktop, right click "GPU Updater Tool.ps1" and select "Run with Powershell"
-
+1. Download https://github.com/jamesstringerparsec/Cloud-GPU-Updater/archive/master.zip
+2. Extract the folder, right click "GPU Updater Tool.ps1" and run with Powershell - if the script immediately closes, right click and click edit, then the green play button in the Powershell ISE toolbar.
 
 Q&A - Will the P100 be supported by this tool?
 
