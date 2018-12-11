@@ -38,10 +38,12 @@ test-path -Path "C:\Program Files\NVIDIA Corporation\NVSMI"
 
 Function webDriver { 
 #checks the latest available graphics driver from nvidia.com
-if ($gpu.supported -eq "No") {"Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
+if (($gpu.supported -eq "No") -eq $true) {"Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
 Exit
 }
-Elseif ($gpu.Supported -eq "UnOfficial") {"This GPU (" + $gpu.name + ")needs a GRID driver found on the Azure support site" 
+Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
+$AzureGRIDDriver = Invoke-WebRequest -uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing  
+$($AzureGRIDDriver.Links.OuterHtml -like "*GRID*")[0].Split('(')[1].split(")")[0]
 }
 Else { 
 $gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
@@ -276,6 +278,7 @@ appmessage
 $app.Parsec
 checkOSSupport
 checkGPUSupport
+querygpu
 checkDriverInstalled
 ConfirmCharges
 checkUpdates
