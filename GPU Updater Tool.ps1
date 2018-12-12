@@ -272,6 +272,7 @@ $ShortCut.Save()
 }
 
 #starts 
+prepareEnvironment
 queryOS
 querygpu
 appmessage
