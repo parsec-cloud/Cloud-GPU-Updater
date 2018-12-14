@@ -163,7 +163,7 @@ function prepareEnvironment {
 #prepares working directory
 $test = Test-Path -Path $system.path 
 if ($test -eq $true) {
-Remove-Item -path $system.Path -Force
+Remove-Item -path $system.Path -Recurse -Force | Out-Null
 New-Item -ItemType Directory -Force -Path $system.path | Out-Null}
 Else {
 New-Item -ItemType Directory -Force -Path $system.path | Out-Null
