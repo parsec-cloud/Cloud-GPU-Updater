@@ -176,6 +176,8 @@ if ($gpu.Update_Available -eq $true) {$app.success
 startUpdate}
 Else {
 $app.UpToDate
+Read-Host "Press any key to exit..."
+Exit
 }
 }
 
