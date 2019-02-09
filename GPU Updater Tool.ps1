@@ -42,9 +42,8 @@ if (($gpu.supported -eq "No") -eq $true) {"Sorry, this GPU (" + $gpu.name + ") i
 Exit
 }
 Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
-$GoogleGRIDDriverURL = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing
-$GoogleGRIDDriverVersion = $GoogleGRIDDriverURL.Links | Where-Object href -like *server2016_64bit_international.exe*  
-$GoogleGRIDDriverVersion.outerHTML.Split('/')[6].split('_')[0]
+$GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing
+$($GoogleGRID.Links | Where-Object href -like *server2016_64bit_international.exe*).outerHTML.Split('/')[6].split('_')[0]
 }
 Else { 
 $gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
