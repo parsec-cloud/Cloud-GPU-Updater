@@ -171,6 +171,7 @@ New-Item -ItemType Directory -Force -Path $system.path | Out-Null
 }
 
 function checkUpdates {
+queryGPU
 #starts update if required
 if ($gpu.Update_Available -eq $true) {$app.success
 startUpdate}
