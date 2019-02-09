@@ -42,8 +42,9 @@ if (($gpu.supported -eq "No") -eq $true) {"Sorry, this GPU (" + $gpu.name + ") i
 Exit
 }
 Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
-$AzureGRIDDriver = Invoke-WebRequest -uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing  
-$($AzureGRIDDriver.Links.OuterHtml -like "*GRID*")[0].Split('(')[1].split(")")[0]
+$GoogleGRIDDriverURL = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing
+$GoogleGRIDDriverVersion = $GoogleGRIDDriverURL.Links | Where-Object href -like *server2016_64bit_international.exe*  
+$GoogleGRIDDriverVersion.outerHTML.Split('/')[6].split('_')[0]
 }
 Else { 
 $gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
@@ -203,8 +204,8 @@ $ReadHost = Read-Host "(Y/N)"
 
 function DownloadDriver {
 if (($gpu.supported -eq "UnOfficial") -eq $true) {
-$AzureGRID = Invoke-WebRequest -uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing  
-(New-Object System.Net.WebClient).DownloadFile($($AzureGRID.Links.OuterHtml -like "*GRID*")[0].Split('"')[1].split("'")[0], "C:\ParsecTemp\Drivers\AzureGRID.exe")
+$GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing
+(New-Object System.Net.WebClient).DownloadFile($($GoogleGRID.Links | Where-Object href -like *server2016_64bit_international.exe*).href, "C:\ParsecTemp\Drivers\GoogleGRID.exe")
 }
 Else {
 #downloads driver from nvidia.com
