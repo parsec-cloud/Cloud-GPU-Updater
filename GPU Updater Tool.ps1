@@ -278,8 +278,9 @@ $ShortCut.Save()
 prepareEnvironment
 queryOS
 querygpu
-appmessage
 $app.Parsec
+querygpu
+appmessage
 checkOSSupport
 checkGPUSupport
 querygpu
