@@ -42,8 +42,8 @@ if (($gpu.supported -eq "No") -eq $true) {"Sorry, this GPU (" + $gpu.name + ") i
 Exit
 }
 Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
-$GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing
-$($GoogleGRID.Links | Where-Object href -like *server2016_64bit_international.exe*).outerHTML.Split('/')[6].split('_')[0]
+if ($url.GoogleGRID -eq $null) {$URL.GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing} Else {}
+$($($URL.GoogleGRID).Links | Where-Object href -like *server2016_64bit_international.exe*).outerHTML.Split('/')[6].split('_')[0]
 }
 Else { 
 $gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
@@ -204,8 +204,7 @@ $ReadHost = Read-Host "(Y/N)"
 
 function DownloadDriver {
 if (($gpu.supported -eq "UnOfficial") -eq $true) {
-$GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing
-(New-Object System.Net.WebClient).DownloadFile($($GoogleGRID.Links | Where-Object href -like *server2016_64bit_international.exe*).href, "C:\ParsecTemp\Drivers\GoogleGRID.exe")
+(New-Object System.Net.WebClient).DownloadFile($($($URL.GoogleGRID).links | Where-Object href -like *server2016_64bit_international.exe*).href, "C:\ParsecTemp\Drivers\GoogleGRID.exe")
 }
 Else {
 #downloads driver from nvidia.com
@@ -221,6 +220,7 @@ $DLpath = Get-ChildItem -Path $system.path -Include *exe* -Recurse | Select-Obje
 Start-Process -FilePath "$($system.Path)\$dlpath" -ArgumentList "/s /n" -Wait }
 
 #setting up arrays below
+$url = @{}
 $download = @{}
 $app = @{}
 $gpu = @{Device_ID = installedGPUID}
