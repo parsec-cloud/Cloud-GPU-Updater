@@ -13,7 +13,7 @@ Quadro P5000
 Quadro P4000
 Tesla M60
 GRID K520
-Tesla P100 (Using Azure Driver)
+Tesla P100 (Using Google Driver)
 
 Instructions: 
 1. Download https://github.com/jamesstringerparsec/Cloud-GPU-Updater/archive/master.zip
