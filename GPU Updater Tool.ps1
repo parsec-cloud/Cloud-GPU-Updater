@@ -248,6 +248,14 @@ function DownloadDriver {
 if (($gpu.supported -eq "UnOfficial") -eq $true) {
 (New-Object System.Net.WebClient).DownloadFile($($($URL.GoogleGRID).links | Where-Object href -like *server2016_64bit_international.exe*).href, "C:\ParsecTemp\Drivers\GoogleGRID.exe")
 }
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws")) -eq $true){
+$s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
+(New-Object System.Net.WebClient).DownloadFile($("https://ec2-windows-nvidia-drivers.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
+}
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "azure")) -eq $true){
+$azuresupportpage = (Invoke-WebRequest -Uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing).links.outerhtml -like "*GRID*"
+(New-Object System.Net.WebClient).DownloadFile($($azuresupportpage[0].split('"')[1]), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
+}
 Else {
 #downloads driver from nvidia.com
 $Download.Link = Invoke-WebRequest -Uri $gpu.url -Method Get -UseBasicParsing | select @{N='Latest';E={$($_.links.href -match"www.nvidia.com/download/driverResults.aspx*")[0].substring(2)}}
