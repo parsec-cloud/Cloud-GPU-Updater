@@ -31,6 +31,37 @@ if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -N
  return $false
 }
 
+function cloudprovider { 
+#finds the cloud provider that this VM is hosted by
+$gcp = $(
+            try {(Invoke-WebRequest -uri http://metadata.google.internal/computeMetadata/v1/ -Method GET -header @{'metadata-flavor'='Google'} -TimeoutSec 5)}
+            catch {}
+         )
+
+$aws = $(
+            Try {(Invoke-WebRequest -uri http://169.254.169.254/latest/meta-data/ -TimeoutSec 5)}
+            catch {}
+         )
+
+$paperspace = $(
+                    Try {(Invoke-WebRequest -uri http://metadata.paperspace.com/meta-data/machine -TimeoutSec 5)}
+                    catch {}
+                )
+
+$azure = $(
+              Try {(Invoke-WebRequest -uri http://169.254.169.254/metadata/instance/ -TimeoutSec 5)}
+              catch {}              
+           )
+
+
+if ($GCP.StatusCode -eq 200) {"Google"} 
+Elseif ($AWS.StatusCode -eq 200) {"AWS"} 
+Elseif ($paperspace.StatusCode -eq 200) {"Paperspace"}
+Elseif ($azure.StatusCode -eq 200) {"Azure"}
+Else {"Generic"}
+}
+
+
 function validDriver {
 #checks an important nvidia driver folder to see if it exits
 test-path -Path "C:\Program Files\NVIDIA Corporation\NVSMI"
@@ -44,6 +75,14 @@ Exit
 Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
 if ($url.GoogleGRID -eq $null) {$URL.GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing} Else {}
 $($($URL.GoogleGRID).Links | Where-Object href -like *server2016_64bit_international.exe*).outerHTML.Split('/')[6].split('_')[0]
+}
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws")) -eq $true){
+$s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
+$s3path.split('_')[0].split('/')[1]
+}
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "azure")) -eq $true){
+$azuresupportpage = (Invoke-WebRequest -Uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing).links.outerhtml -like "*GRID*"
+$azuresupportpage.split('(')[1].split(')')[0]
 }
 Else { 
 $gpu.URL = "https://www.nvidia.com/Download/processFind.aspx?psid=" + $gpu.psid + "&pfid=" + $gpu.pfid + "&osid=" + $gpu.osid + "&lid=1&whql=1&lang=en-us&ctk=0"
@@ -108,13 +147,13 @@ Import-Csv "$($system.path)\GPUID.csv" -Delimiter ',' | Where-Object DeviceID -l
 
 function queryGPU {
 #sets details about current gpu
-if($gpu.Device_ID -eq "DEV_13F2") {$gpu.Name = 'NVIDIA Tesla M60'; $gpu.PSID = '75'; $gpu.PFID = '783'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"} 
-ElseIF($gpu.Device_ID -eq "DEV_118A") {$gpu.Name = 'NVIDIA GRID K520'; $gpu.PSID = '94'; $gpu.PFID = '704'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"} 
-ElseIF($gpu.Device_ID -eq "DEV_1BB1") {$gpu.Name = 'NVIDIA Quadro P4000'; $gpu.PSID = '73'; $gpu.PFID = '840'; $gpu.NV_GRID = $false; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"} 
-Elseif($gpu.Device_ID -eq "DEV_1BB0") {$gpu.Name = 'NVIDIA Quadro P5000'; $gpu.PSID = '73'; $gpu.PFID = '823'; $gpu.NV_GRID = $false; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"}
-Elseif($gpu.Device_ID -eq "DEV_15F8") {$gpu.Name = 'NVIDIA Tesla P100'; $gpu.PSID = '103'; $gpu.PFID = '822'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"}
-Elseif($gpu.Device_ID -eq "DEV_1BB3") {$gpu.Name = 'NVIDIA Tesla P4'; $gpu.PSID = '103'; $gpu.PFID = '831'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"}
-Elseif($gpu.Device_ID -eq "DEV_1EB8") {$gpu.Name = 'NVIDIA Tesla T4'; $gpu.PSID = '110'; $gpu.PFID = '883'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"}
+if($gpu.Device_ID -eq "DEV_13F2") {$gpu.Name = 'NVIDIA Tesla M60'; $gpu.PSID = '75'; $gpu.PFID = '783'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"; $gpu.cloudProvider = cloudprovider} 
+ElseIF($gpu.Device_ID -eq "DEV_118A") {$gpu.Name = 'NVIDIA GRID K520'; $gpu.PSID = '94'; $gpu.PFID = '704'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"; $gpu.cloudProvider = cloudprovider} 
+ElseIF($gpu.Device_ID -eq "DEV_1BB1") {$gpu.Name = 'NVIDIA Quadro P4000'; $gpu.PSID = '73'; $gpu.PFID = '840'; $gpu.NV_GRID = $false; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"; $gpu.cloudProvider = cloudprovider} 
+Elseif($gpu.Device_ID -eq "DEV_1BB0") {$gpu.Name = 'NVIDIA Quadro P5000'; $gpu.PSID = '73'; $gpu.PFID = '823'; $gpu.NV_GRID = $false; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "Yes"; $gpu.cloudProvider = cloudprovider}
+Elseif($gpu.Device_ID -eq "DEV_15F8") {$gpu.Name = 'NVIDIA Tesla P100'; $gpu.PSID = '103'; $gpu.PFID = '822'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"; $gpu.cloudProvider = cloudprovider}
+Elseif($gpu.Device_ID -eq "DEV_1BB3") {$gpu.Name = 'NVIDIA Tesla P4'; $gpu.PSID = '103'; $gpu.PFID = '831'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"; $gpu.cloudProvider = cloudprovider}
+Elseif($gpu.Device_ID -eq "DEV_1EB8") {$gpu.Name = 'NVIDIA Tesla T4'; $gpu.PSID = '110'; $gpu.PFID = '883'; $gpu.NV_GRID = $true; $gpu.Driver_Version = driverversion; $gpu.Web_Driver = webdriver; $gpu.Update_Available = ($gpu.Web_Driver -gt $gpu.Driver_Version); $gpu.Current_Mode = GPUCurrentMode; $gpu.Supported = "UnOfficial"; $gpu.cloudProvider = cloudprovider}
 Elseif($gpu.Device_ID -eq $null) {$gpu.Supported = "No"; $gpu.Name = "No Device Found"}
 else{$gpu.Supported = "No"; $gpu.Name = webName}
 }
