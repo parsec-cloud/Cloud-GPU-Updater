@@ -73,8 +73,8 @@ if (($gpu.supported -eq "No") -eq $true) {"Sorry, this GPU (" + $gpu.name + ") i
 Exit
 }
 Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
-if ($url.GoogleGRID -eq $null) {$URL.GoogleGRID = Invoke-WebRequest -uri https://cloud.google.com/compute/docs/gpus/add-gpus#installing_grid_drivers_for_virtual_workstations -UseBasicParsing} Else {}
-$($($URL.GoogleGRID).Links | Where-Object href -like *server2016_64bit_international.exe*).outerHTML.Split('/')[6].split('_')[0]
+$googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
+$googlestoragedriver.split('/')[2].split('_')[0]
 }
 Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws")) -eq $true){
 $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
@@ -246,7 +246,8 @@ $ReadHost = Read-Host "(Y/N)"
 
 function DownloadDriver {
 if (($gpu.supported -eq "UnOfficial") -eq $true) {
-(New-Object System.Net.WebClient).DownloadFile($($($URL.GoogleGRID).links | Where-Object href -like *server2016_64bit_international.exe*).href, "C:\ParsecTemp\Drivers\GoogleGRID.exe")
+$googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
+(New-Object System.Net.WebClient).DownloadFile($("https://storage.googleapis.com/nvidia-drivers-us-public/" + $googlestoragedriver), "C:\ParsecTemp\Drivers\GoogleGRID.exe")
 }
 Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws")) -eq $true){
 $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
