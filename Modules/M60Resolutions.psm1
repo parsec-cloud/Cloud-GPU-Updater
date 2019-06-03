@@ -1,4 +1,6 @@
-﻿function M60Resolutuions {
+﻿#version=1
+
+function M60Resolutuions {
 
 $DEVICE_ID = ((Get-ChildItem -Path HKLM:\System\CurrentControlSet\Enum\DISPLAY\NVD0000).Name).split('\')[6]
 
