@@ -49,7 +49,7 @@ $paperspace = $(
                 )
 
 $azure = $(
-              Try {(Invoke-WebRequest -uri http://169.254.169.254/metadata/instance/ -TimeoutSec 5)}
+              Try {(Invoke-WebRequest -Uri "http://169.254.169.254/metadata/instance?api-version=2018-10-01" -Headers @{Metadata="true"} -TimeoutSec 5)}
               catch {}              
            )
 
