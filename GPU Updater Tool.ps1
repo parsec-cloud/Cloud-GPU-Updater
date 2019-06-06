@@ -1,4 +1,7 @@
-﻿function installedGPUID {
+﻿#version=001
+
+
+function installedGPUID {
 #queries WMI to get DeviceID of the installed NVIDIA GPU
 Try {(get-wmiobject -query "select DeviceID from Win32_PNPEntity Where (deviceid Like '%PCI\\VEN_10DE%') and (PNPClass = 'Display' or Name = '3D Video Controller')"  | Select-Object DeviceID -ExpandProperty DeviceID).substring(13,8)}
 Catch {return $null}
