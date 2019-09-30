@@ -288,10 +288,40 @@ $download.Direct = Invoke-WebRequest -Uri $download.link.latest -Method Get -Use
 }
 }
 
+function Test-RegistryValue {
+# https://www.jonathanmedd.net/2014/02/testing-for-the-presence-of-a-registry-key-and-value.html
+param (
+
+ [parameter(Mandatory=$true)]
+ [ValidateNotNullOrEmpty()]$Path,
+
+[parameter(Mandatory=$true)]
+ [ValidateNotNullOrEmpty()]$Value
+)
+
+try {
+
+Get-ItemProperty -Path $Path | Select-Object -ExpandProperty $Value -ErrorAction Stop | Out-Null
+ return $true
+ }
+
+catch {
+
+return $false
+
+}
+
+}
+
 function installDriver {
 #installs driver silently with /s /n arguments provided by NVIDIA
 $DLpath = Get-ChildItem -Path $system.path -Include *exe* -Recurse | Select-Object -ExpandProperty Name
-Start-Process -FilePath "$($system.Path)\$dlpath" -ArgumentList "/s /n" -Wait }
+Start-Process -FilePath "$($system.Path)\$dlpath" -ArgumentList "/s /n" -Wait 
+if((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
+if((Test-RegistryValue -path 'HKLM:\SOFTWARE\NVIDIA Corporation\Global' -value 'vGamingMarketplace') -eq $true) {Set-itemproperty -path 'HKLM:\SOFTWARE\NVIDIA Corporation\Global' -Name "vGamingMarketplace" -Value "2" | Out-Null} else {new-itemproperty -path 'HKLM:\SOFTWARE\NVIDIA Corporation\Global' -Name "vGamingMarketplace" -Value "2" -PropertyType DWORD | Out-Null}
+}
+Else{}
+}
 
 #setting up arrays below
 $url = @{}
