@@ -76,13 +76,17 @@ Function webDriver {
 if (($gpu.supported -eq "No") -eq $true) {"Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
 Exit
 }
-Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
-$googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
-$googlestoragedriver.split('/')[2].split('_')[0]
-}
-Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A")) -eq $true){
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A") -and ($gpu.Device_ID -ne "DEV_1EB8")) -eq $true){
 $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
 $s3path.split('_')[0].split('/')[1]
+}
+Elseif((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
+$AWSG4SupportPage = invoke-webrequest -uri "https://aws.amazon.com/ec2/instance-types/g4/" -UseBasicParsing
+($AWSG4SupportPage.links.outerhtml -like "*vgaming-windows*").split('-')[2]
+}
+Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
+$googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
+$googlestoragedriver.split('/')[2].split('_')[0]
 }
 Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "azure")) -eq $true){
 $azuresupportpage = (Invoke-WebRequest -Uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing).links.outerhtml -like "*GRID*"
@@ -117,7 +121,7 @@ Else {$system.OS_Supported = $false}
 function appmessage {
 #sets most of the CLI messages
 $app.Parsec = Write-Host -foregroundcolor red "
-                                                         
+                                                           
                    ((//////                                
                  #######//////                             
                  ##########(/////.                         
@@ -136,13 +140,13 @@ $app.Parsec = Write-Host -foregroundcolor red "
                          *#############///                 
                              ##########///                 
                                 ######(*                   
-                                                                           
-       
+                                                           
+
                   ~Parsec GPU Updater~
 " 
 $app.FailOS = "Sorry, this Operating system (" + $system.OS_version + ") is not yet supported by this tool."
 $app.FailGPU = "Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
-$app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a GRID driver downloaded from the Google Support Site"
+$app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a GRID driver downloaded from the $($gpu.cloudprovider) Support Site"
 $app.NoDriver = "We detected your system does not have a valid NVIDIA Driver installed"
 $app.UpToDate = "Your PC already has the latest NVIDIA GPU Driver (" + $gpu.Web_Driver + ") available from nvidia.com."
 $app.Success = "Checked Now " + $system.date + " - An update is available (" + $gpu.Driver_Version + " > " + $gpu.Web_Driver + ")" 
@@ -247,9 +251,9 @@ $ReadHost = Read-Host "(Y/N)"
        downloaddriver
        Write-Output  "Success!"
        Write-Output `n "Installing Driver, this may take up to 10 minutes and will automatically reboot if required"
-       InstallDriver
+       #InstallDriver
        Write-Output "Success - Driver Installed - Checking if reboot is required"
-       rebootlogic
+       #rebootlogic
        } 
        N {Write-output "Exiting Scipt"
        exit} 
@@ -257,11 +261,18 @@ $ReadHost = Read-Host "(Y/N)"
 }
 
 function DownloadDriver {
-if (($gpu.supported -eq "UnOfficial") -eq $true) {
+if((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
+$AWSG4SupportPage = invoke-webrequest -uri "https://aws.amazon.com/ec2/instance-types/g4/" -UseBasicParsing
+(New-Object System.Net.WebClient).DownloadFile($(($AWSG4SupportPage.links.outerhtml -like "*vgaming-windows*").split('"')[1]), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
+Expand-Archive -Path $($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath $system.path
+Get-ChildItem -Path $system.path -Include *win7* -Recurse | Remove-Item
+Get-ChildItem -Path $system.path -Include *.zip* -Recurse | Remove-Item
+}
+Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
 $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
 (New-Object System.Net.WebClient).DownloadFile($("https://storage.googleapis.com/nvidia-drivers-us-public/" + $googlestoragedriver), "C:\ParsecTemp\Drivers\GoogleGRID.exe")
 }
-Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A")) -eq $true){
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A") -and ($gpu.Device_ID -ne "DEV_1EB8")) -eq $true){
 $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
 (New-Object System.Net.WebClient).DownloadFile($("https://ec2-windows-nvidia-drivers.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
 }
