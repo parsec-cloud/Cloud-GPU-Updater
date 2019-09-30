@@ -80,7 +80,7 @@ Elseif (($gpu.Supported -eq "UnOfficial") -eq $true) {
 $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
 $googlestoragedriver.split('/')[2].split('_')[0]
 }
-Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws")) -eq $true){
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A")) -eq $true){
 $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
 $s3path.split('_')[0].split('/')[1]
 }
@@ -253,7 +253,7 @@ if (($gpu.supported -eq "UnOfficial") -eq $true) {
 $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
 (New-Object System.Net.WebClient).DownloadFile($("https://storage.googleapis.com/nvidia-drivers-us-public/" + $googlestoragedriver), "C:\ParsecTemp\Drivers\GoogleGRID.exe")
 }
-Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws")) -eq $true){
+Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A")) -eq $true){
 $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
 (New-Object System.Net.WebClient).DownloadFile($("https://ec2-windows-nvidia-drivers.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
 }
