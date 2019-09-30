@@ -1,5 +1,6 @@
 ﻿#version=001
-
+ #sets invoke webrequest to use TLS1.2 by default
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function installedGPUID {
 #queries WMI to get DeviceID of the installed NVIDIA GPU
