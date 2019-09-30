@@ -116,21 +116,29 @@ Else {$system.OS_Supported = $false}
 
 function appmessage {
 #sets most of the CLI messages
-$app.Parsec = Write-Host -foregroundcolor cyan "
-                                 #############                                 
-                                 #############                                 
-                                                                               
-                           .#####   ###/  #########                            
-                                                                               
-                          ###########################                          
-                          ###########################                          
-                                                                               
-                           .#########  /###   #####                            
-                                                                               
-                                 #############                                 
-                                 #############                                 
-                                       
-                              ~Parsec GPU Updater~
+$app.Parsec = Write-Host -foregroundcolor red "
+                                                         
+                   ((//////                                
+                 #######//////                             
+                 ##########(/////.                         
+                 #############(/////,                      
+                 #################/////*                   
+                 #######/############////.                 
+                 #######/// ##########////                 
+                 #######///    /#######///                 
+                 #######///     #######///                 
+                 #######///     #######///                 
+                 #######////    #######///                 
+                 ########////// #######///                 
+                 ###########////#######///                 
+                   ####################///                 
+                       ################///                 
+                         *#############///                 
+                             ##########///                 
+                                ######(*                   
+                                                                           
+       
+                  ~Parsec GPU Updater~
 " 
 $app.FailOS = "Sorry, this Operating system (" + $system.OS_version + ") is not yet supported by this tool."
 $app.FailGPU = "Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
