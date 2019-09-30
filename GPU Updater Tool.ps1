@@ -251,9 +251,9 @@ $ReadHost = Read-Host "(Y/N)"
        downloaddriver
        Write-Output  "Success!"
        Write-Output `n "Installing Driver, this may take up to 10 minutes and will automatically reboot if required"
-       #InstallDriver
+       InstallDriver
        Write-Output "Success - Driver Installed - Checking if reboot is required"
-       #rebootlogic
+       rebootlogic
        } 
        N {Write-output "Exiting Scipt"
        exit} 
