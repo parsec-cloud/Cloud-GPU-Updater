@@ -9,14 +9,15 @@ Windows Server 2016
 Windows Server 2019
 
 Supported GPUs
-
-Quadro P5000
-Quadro P4000
-Tesla M60
-GRID K520
-Tesla P100 Virtual Workstation (Using Google Driver)
-Tesla P4 Virtual Workstation (Using Google Driver)
-Tesla T4 Virtual Workstation (Using Google Driver)
+AWS G3.4xLarge (Tesla M60)  
+AWS G2.2xLarge (GRID K520)  
+AWS G4dn.xLarge (Tesla T4 with vGaming driver)  
+Azure NV6 (Tesla M60)  
+Paperspace P4000 (Quadro P4000)  
+Paperspace P5000 (Quadro P5000)  
+Google P100 VW (Tesla P100 with Virtual Workstation Driver)  
+Google P4 VW (Tesla P4 with Virtual Workstation Driver)  
+Google T4 VW (Tesla T4 with Virtual Workstation Driver)  
 
 Instructions: 
 1. Download https://github.com/jamesstringerparsec/Cloud-GPU-Updater/archive/master.zip
