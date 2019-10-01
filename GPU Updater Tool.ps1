@@ -314,13 +314,34 @@ return $false
 
 }
 
+function DisableSecondMonitor {
+#downloads script to set GPU to WDDM if required
+(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/jamesstringerparsec/Cloud-GPU-Updater/master/Additional%20Files/DisableSecondMonitor.ps1", $($system.Path) + "\DisableSecondMonitor.ps1") 
+Unblock-File -Path "$($system.Path)\DisableSecondMonitor.ps1"
+}
+
+function DisableSecondMonitor-shortcut{
+#creates startup shortcut that will start the script downloaded in setnvsmi
+Write-Output "Generic Non PNP Monitor"
+$Shell = New-Object -ComObject ("WScript.Shell")
+$ShortCut = $Shell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\DisableSecondMonitor.lnk")
+$ShortCut.TargetPath="powershell.exe"
+$ShortCut.Arguments='-WindowStyle hidden -ExecutionPolicy Bypass -File "C:\ParsecTemp\Drivers\DisableSecondMonitor.ps1"'
+$ShortCut.WorkingDirectory = "C:\ParsecTemp\Drivers";
+$ShortCut.WindowStyle = 0;
+$ShortCut.Description = "DisableSecondMonitor";
+$ShortCut.Save()
+}
+
+
 function installDriver {
 #installs driver silently with /s /n arguments provided by NVIDIA
 $DLpath = Get-ChildItem -Path $system.path -Include *exe* -Recurse | Select-Object -ExpandProperty Name
 Start-Process -FilePath "$($system.Path)\$dlpath" -ArgumentList "/s /n" -Wait 
 if((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
 if((Test-RegistryValue -path 'HKLM:\SOFTWARE\NVIDIA Corporation\Global' -value 'vGamingMarketplace') -eq $true) {Set-itemproperty -path 'HKLM:\SOFTWARE\NVIDIA Corporation\Global' -Name "vGamingMarketplace" -Value "2" | Out-Null} else {new-itemproperty -path 'HKLM:\SOFTWARE\NVIDIA Corporation\Global' -Name "vGamingMarketplace" -Value "2" -PropertyType DWORD | Out-Null}
-cmd.exe /c "displayswitch.exe /internal"
+DisableSecondMonitor
+DisableSecondMonitor-shortcut
 }
 Else{}
 }
