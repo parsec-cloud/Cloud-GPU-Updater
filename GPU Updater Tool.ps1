@@ -23,7 +23,8 @@ Function G4DN {
 if ((Get-AWSCredential -ProfileName "$args") -ne $null) {
     }
 Else {
-    Write-host "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here https://console.aws.amazon.com/iam/home?/security_credentials#/security_credentials"
+    Write-host "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here"
+    Write-host "https://console.aws.amazon.com/iam/home?/security_credentials#/security_credentials" -BackgroundColor Green -ForegroundColor Black
     $accesskey = Read-Host "Enter your AWS Access key"
     $secretkey = Read-Host "Enter your AWS Secret Key"
     Set-AWSCredentials -AccessKey $accesskey -SecretKey $secretkey -StoreAs "$args"
