@@ -23,7 +23,7 @@ Function G4DN {
 if ((Get-AWSCredential -ProfileName "$args") -ne $null) {
     }
 Else {
-    $app.g4dn
+    Write-host "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here https://console.aws.amazon.com/iam/home?/security_credentials#/security_credentials"
     $accesskey = Read-Host "Enter your AWS Access key"
     $secretkey = Read-Host "Enter your AWS Secret Key"
     Set-AWSCredentials -AccessKey $accesskey -SecretKey $secretkey -StoreAs "$args"
@@ -137,35 +137,10 @@ Else {$system.OS_Supported = $false}
 
 function appmessage {
 #sets most of the CLI messages
-$app.Parsec = Write-Host -foregroundcolor red "
-                                                           
-                   ((//////                                
-                 #######//////                             
-                 ##########(/////.                         
-                 #############(/////,                      
-                 #################/////*                   
-                 #######/############////.                 
-                 #######/// ##########////                 
-                 #######///    /#######///                 
-                 #######///     #######///                 
-                 #######///     #######///                 
-                 #######////    #######///                 
-                 ########////// #######///                 
-                 ###########////#######///                 
-                   ####################///                 
-                       ################///                 
-                         *#############///                 
-                             ##########///                 
-                                ######(*                   
-                                                           
-
-                  ~Parsec GPU Updater~
-" 
 $app.FailOS = "Sorry, this Operating system (" + $system.OS_version + ") is not yet supported by this tool."
 $app.FailGPU = "Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
 $app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a GRID driver downloaded from the $($gpu.cloudprovider) Support Site"
 $app.NoDriver = "We detected your system does not have a valid NVIDIA Driver installed"
-$app.g4dn = "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here https://console.aws.amazon.com/iam/home?/security_credentials#/security_credentials"
 $app.UpToDate = "Your PC already has the latest NVIDIA GPU Driver (" + $gpu.Web_Driver + ") available from nvidia.com."
 $app.Success = "Checked Now " + $system.date + " - An update is available (" + $gpu.Driver_Version + " > " + $gpu.Web_Driver + ")" 
 $app.ConfirmCharge = "Installing NVIDIA Drivers may require 2 reboots in order to install correctly.  
@@ -368,6 +343,32 @@ $app = @{}
 $gpu = @{Device_ID = installedGPUID}
 $system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"}
 
+
+$app.Parsec = Write-Host -foregroundcolor red "
+                                                           
+                   ((//////                                
+                 #######//////                             
+                 ##########(/////.                         
+                 #############(/////,                      
+                 #################/////*                   
+                 #######/############////.                 
+                 #######/// ##########////                 
+                 #######///    /#######///                 
+                 #######///     #######///                 
+                 #######///     #######///                 
+                 #######////    #######///                 
+                 ########////// #######///                 
+                 ###########////#######///                 
+                   ####################///                 
+                       ################///                 
+                         *#############///                 
+                             ##########///                 
+                                ######(*                   
+                                                           
+
+                  ~Parsec GPU Updater~
+" 
+
 function rebootLogic {
 #checks if machine needs to be rebooted, and sets a startup item to set GPU mode to WDDM if required
 if ($system.OS_Reboot_Required -eq $true) {
@@ -417,10 +418,11 @@ $ShortCut.Save()
 }
 
 #starts 
+$app.Parsec
+"Loading..."
 prepareEnvironment
 queryOS
 querygpu
-$app.Parsec
 querygpu
 appmessage
 checkOSSupport
