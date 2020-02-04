@@ -19,6 +19,22 @@ function osVersion {
 (Get-WmiObject -class Win32_OperatingSystem).Caption
 }
 
+Function G4DN {
+if ((Get-AWSCredential -ProfileName "$args") -ne $null) {
+    }
+Else {
+    $app.g4dn
+    $accesskey = Read-Host "Enter your AWS Access key"
+    $secretkey = Read-Host "Enter your AWS Secret Key"
+    Set-AWSCredentials -AccessKey $accesskey -SecretKey $secretkey -StoreAs "$args"
+    }
+
+$Bucket = "nvidia-gaming"
+$KeyPrefix = "windows/latest"
+$S3Objects = Get-S3Object -BucketName $Bucket -KeyPrefix $KeyPrefix -Region us-east-1 -ProfileName "$args"
+$S3Objects.key | select-string -Pattern 'win10_64bit' 
+}
+
 function requiresReboot{
 #Queries if system needs a reboot after driver installs
 if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) { return $true }
@@ -81,8 +97,9 @@ $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.
 $s3path.split('_')[0].split('/')[1]
 }
 Elseif((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
-$AWSG4SupportPage = invoke-webrequest -uri "https://aws.amazon.com/ec2/instance-types/g4/" -UseBasicParsing
-($AWSG4SupportPage.links.outerhtml -like "*vgaming-windows*").split('-')[2]
+G4DN GPUUpdateG4Dn | Out-Null
+$G4WebDriver = G4DN GPUUpdateG4Dn
+$G4WebDriver.ToString().Split('/_')[2]
 }
 Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
 $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
@@ -148,6 +165,7 @@ $app.FailOS = "Sorry, this Operating system (" + $system.OS_version + ") is not 
 $app.FailGPU = "Sorry, this GPU (" + $gpu.name + ") is not yet supported by this tool."
 $app.UnOfficialGPU = "This GPU (" + $gpu.name + ") requires a GRID driver downloaded from the $($gpu.cloudprovider) Support Site"
 $app.NoDriver = "We detected your system does not have a valid NVIDIA Driver installed"
+$app.g4dn = "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here https://console.aws.amazon.com/iam/home?/security_credentials#/security_credentials"
 $app.UpToDate = "Your PC already has the latest NVIDIA GPU Driver (" + $gpu.Web_Driver + ") available from nvidia.com."
 $app.Success = "Checked Now " + $system.date + " - An update is available (" + $gpu.Driver_Version + " > " + $gpu.Web_Driver + ")" 
 $app.ConfirmCharge = "Installing NVIDIA Drivers may require 2 reboots in order to install correctly.  
@@ -262,11 +280,8 @@ $ReadHost = Read-Host "(Y/N)"
 
 function DownloadDriver {
 if((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
-$AWSG4SupportPage = invoke-webrequest -uri "https://aws.amazon.com/ec2/instance-types/g4/" -UseBasicParsing
-(New-Object System.Net.WebClient).DownloadFile($(($AWSG4SupportPage.links.outerhtml -like "*vgaming-windows*").split('"')[1]), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
-Expand-Archive -Path $($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath $system.path
-Get-ChildItem -Path $system.path -Include *win7* -Recurse | Remove-Item
-Get-ChildItem -Path $system.path -Include *.zip* -Recurse | Remove-Item
+$S3Path = G4DN GPUUpdateG4Dn
+(New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
 (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/nvidia-gaming/GridSwCert-Windows.cert", "C:\Users\Public\Documents\GridSwCert.txt")
 }
 Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
