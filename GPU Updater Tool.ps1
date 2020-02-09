@@ -31,7 +31,7 @@ Else {
     }
 
 $Bucket = "nvidia-gaming"
-$KeyPrefix = "windows/latest"
+$KeyPrefix = "windows"
 $S3Objects = Get-S3Object -BucketName $Bucket -KeyPrefix $KeyPrefix -Region us-east-1 -ProfileName "$args"
 $S3Objects.key | select-string -Pattern 'win10_64bit' 
 }
