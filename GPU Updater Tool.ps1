@@ -1,4 +1,4 @@
-﻿#version=001
+#version=001
  #sets invoke-webrequest to use TLS1.2 by default
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -31,9 +31,9 @@ Else {
     }
 
 $Bucket = "nvidia-gaming"
-$KeyPrefix = "windows"
+$KeyPrefix = "windows/latest"
 $S3Objects = Get-S3Object -BucketName $Bucket -KeyPrefix $KeyPrefix -Region us-east-1 -ProfileName "$args"
-$S3Objects.key | select-string -Pattern 'win10_64bit' 
+$S3Objects.key | select-string -Pattern '.zip' 
 }
 
 function requiresReboot{
@@ -100,7 +100,7 @@ $s3path.split('_')[0].split('/')[1]
 Elseif((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
 G4DN GPUUpdateG4Dn | Out-Null
 $G4WebDriver = G4DN GPUUpdateG4Dn
-$G4WebDriver.ToString().Split('/_')[2]
+$G4WebDriver.tostring().split('-')[1]
 }
 Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
 $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
@@ -257,7 +257,13 @@ $ReadHost = Read-Host "(Y/N)"
 function DownloadDriver {
 if((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
 $S3Path = G4DN GPUUpdateG4Dn
-(New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
+(New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
+Expand-Archive -Path ($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath "$($system.Path)\ExtractedGPUDriver\"
+$extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\" | Where-Object name -like '*win10*' | % name
+Rename-Item -Path "$($system.Path)\ExtractedGPUDriver\$extractedpath" -NewName "NVIDIA_$($gpu.web_driver).exe"
+Move-Item -Path "$($system.Path)\ExtractedGPUDriver\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
+remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
+remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
 (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/nvidia-gaming/GridSwCert-Windows.cert", "C:\Users\Public\Documents\GridSwCert.txt")
 }
 Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
