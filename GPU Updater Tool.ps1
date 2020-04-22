@@ -259,9 +259,9 @@ if((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and (
 $S3Path = G4DN GPUUpdateG4Dn
 (New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
 Expand-Archive -Path ($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath "$($system.Path)\ExtractedGPUDriver\"
-$extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\" | Where-Object name -like '*win10*' | % name
-Rename-Item -Path "$($system.Path)\ExtractedGPUDriver\$extractedpath" -NewName "NVIDIA_$($gpu.web_driver).exe"
-Move-Item -Path "$($system.Path)\ExtractedGPUDriver\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
+$extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\Windows\" | Where-Object name -like '*win10*' | % name
+Rename-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\$extractedpath" -NewName "NVIDIA_$($gpu.web_driver).exe"
+Move-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
 remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
 remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
 (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/nvidia-gaming/GridSwCert-Windows.cert", "C:\Users\Public\Documents\GridSwCert.txt")
@@ -382,13 +382,15 @@ if ($system.OS_Reboot_Required -eq $true) {
     if ($GPU.NV_GRID -eq $false)
     {Write-Output "This computer needs to reboot in order to finish installing your driver Driver, and will reboot in 10 seconds"
     start-sleep -s 10
-    Restart-Computer -Force} 
+    Restart-Computer -Force
+    } 
     ElseIf ($GPU.NV_GRID -eq $true) {
     Write-Output "This computer needs to reboot twice in order to correctly install the driver and set WDDM Mode"
     setnvsmi
     setnvsmi-shortcut
     start-sleep -s 10
-    Restart-Computer -Force}
+    Restart-Computer -Force
+    }
     Else{}
 }
 Else {
@@ -397,7 +399,8 @@ Else {
     setnvsmi
     setnvsmi-shortcut
     start-sleep -s 10
-    Restart-Computer -Force}
+    Restart-Computer -Force
+    }
     ElseIf ($gpu.NV_GRID -eq $false) {
     write-output "Your computer is ready to go and does not require a reboot :)"
     }
