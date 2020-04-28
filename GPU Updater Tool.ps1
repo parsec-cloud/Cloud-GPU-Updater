@@ -490,7 +490,7 @@ $url = @{}
 $download = @{}
 $app = @{}
 $gpu = @{Device_ID = installedGPUID}
-$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"; $System.OS_Reboot_Reason = $null}
+$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"; OS_Reboot_Reason = "No Reboot Required"}
 
 
 $app.Parsec = Write-Host -foregroundcolor red "
