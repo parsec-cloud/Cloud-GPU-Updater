@@ -56,17 +56,36 @@ Function G4DN {
     if ((Get-AWSCredential -ProfileName $profileName) -ne $null) {
         }
     Else {
-        Write-host "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here"
+        Write-host "The G4dn instance requires a non-public driver, you will need to create or use an existing Access key found here, or create an IAM with permissions to read nvidia-gaming.s3.amazonaws.com"
         Write-host "https://console.aws.amazon.com/iam/home?/security_credentials#/security_credentials" -BackgroundColor Green -ForegroundColor Black
         $accesskey = Read-Host "Enter your AWS Access key"
         $secretkey = Read-Host "Enter your AWS Secret Key"
         Set-AWSCredentials -AccessKey $accesskey -SecretKey $secretkey -StoreAs $ProfileName
+        Write-Host "Save AWS Access Key? - DO NOT do this if you intend to let others access this machine, or create an AMI" -BackgroundColor Red -ForegroundColor Black
+        $ReadHost = Read-Host "(Y/N)"
+            Switch ($ReadHost) 
+               {
+                   Y {
+                        }
+                   N {
+                        $System.DoNotSaveAWSCredential = 1
+                        }
+               }
         }
 
     $Bucket = "nvidia-gaming"
     $KeyPrefix = "windows/latest"
     $S3Objects = Get-S3Object -BucketName $Bucket -KeyPrefix $KeyPrefix -Region us-east-1 -ProfileName $profileName
     $S3Objects.key | select-string -Pattern '.zip' 
+    }
+
+Function ClearG4DNCredentials {
+    param (
+    $ProfileName
+    )
+    if ($System.DoNotSaveAWSCredential -eq 1) {
+        Remove-AWSCredentialProfile -ProfileName $ProfileName -Confirm:$False
+        }
     }
 
 function RequiresReboot {
@@ -386,6 +405,7 @@ function DownloadDriver {
         remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
         remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
         (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/nvidia-gaming/GridSwCert-Windows.cert", "C:\Users\Public\Documents\GridSwCert.txt")
+        ClearG4DNCredentials GPUUpdateG4Dn
     }
     Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
         $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
