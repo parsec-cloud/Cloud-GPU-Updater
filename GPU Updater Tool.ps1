@@ -93,6 +93,7 @@ function RequiresReboot {
     param (
     $RebootRequiredReason
     )
+    $System = @{}
     If ($RebootRequiredReason -eq "Script") {
         $System.OS_Reboot_Reason = "This script requires the machine to reboot"
         Return $True
@@ -490,7 +491,7 @@ $url = @{}
 $download = @{}
 $app = @{}
 $gpu = @{Device_ID = installedGPUID}
-$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"; OS_Reboot_Reason = "No Reboot Required"}
+$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Reason = "No Reboot Required" ; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"}
 
 
 $app.Parsec = Write-Host -foregroundcolor red "
