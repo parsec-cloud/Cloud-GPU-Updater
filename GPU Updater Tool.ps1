@@ -106,7 +106,7 @@ function RequiresReboot {
         Return $True
             }
     elseIf (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) {
-        $rebootReason = "Your system requires a reboot to complete updates"
+        $System.OS_Reboot_Reason = "Your system requires a reboot to complete updates"
         Return $True
             }
     elseIf (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -EA Ignore) { 
@@ -490,7 +490,7 @@ $url = @{}
 $download = @{}
 $app = @{}
 $gpu = @{Device_ID = installedGPUID}
-$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"}
+$system = @{Valid_NVIDIA_Driver = ValidDriver; OS_Version = osVersion; OS_Reboot_Required = RequiresReboot; Date = get-date; Path = "C:\ParsecTemp\Drivers"; $System.OS_Reboot_Reason = $null}
 
 
 $app.Parsec = Write-Host -foregroundcolor red "
