@@ -61,7 +61,7 @@ Function G4DN {
         $accesskey = Read-Host "Enter your AWS Access key"
         $secretkey = Read-Host "Enter your AWS Secret Key"
         Set-AWSCredentials -AccessKey $accesskey -SecretKey $secretkey -StoreAs $ProfileName
-        Write-Host "Save AWS Access Key? - DO NOT do this if you intend to let others access this machine, or create an AMI" -BackgroundColor Red -ForegroundColor Black
+        Write-Host "Save AWS Access Key? - DO NOT do this if you intend to let others access this machine, or create an AMI that others will be able to create instances from" -BackgroundColor Red -ForegroundColor Black
         $ReadHost = Read-Host "(Y/N)"
             Switch ($ReadHost) 
                {
