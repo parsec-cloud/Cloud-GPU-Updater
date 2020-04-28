@@ -577,6 +577,7 @@ $app.Parsec
 prepareEnvironment
 queryOS
 querygpu
+querygpu
 appmessage
 checkOSSupport
 checkGPUSupport
