@@ -1,4 +1,3 @@
-
 #version=001
  #sets invoke-webrequest to use TLS1.2 by default
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
