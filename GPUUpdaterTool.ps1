@@ -2,6 +2,8 @@
  #sets invoke-webrequest to use TLS1.2 by default
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+$host.ui.RawUI.WindowTitle = "Cloud GPU Updater"
+
 function installedGPUID {
     #queries WMI to get DeviceID of the installed NVIDIA GPU
     Try {
