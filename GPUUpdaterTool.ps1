@@ -406,7 +406,7 @@ function DownloadDriver {
         Move-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
         remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
         remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
-        (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/nvidia-gaming/GridSwCert-Windows.cert", "C:\Users\Public\Documents\GridSwCert.txt")
+        (New-Object System.Net.WebClient).DownloadFile("https://nvidia-gaming.s3.amazonaws.com/GridSwCert-Archive/GridSwCert-Windows_2020_04.cert", "C:\Users\Public\Documents\GridSwCert.txt")
         ClearG4DNCredentials GPUUpdateG4Dn
     }
     Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
