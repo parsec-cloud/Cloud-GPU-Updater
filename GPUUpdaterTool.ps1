@@ -452,7 +452,7 @@ function DownloadDriver {
         $GPU.AMDExtractedPath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\" -recurse -Directory | Where-Object name -like '*WT6A_INF*' | % FullName
     }
     Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
-        $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*server2016*.exe" | select -last 1
+        $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*GRID1*server2016*.exe" | select -last 1
         (New-Object System.Net.WebClient).DownloadFile($("https://storage.googleapis.com/nvidia-drivers-us-public/" + $googlestoragedriver), "C:\ParsecTemp\Drivers\GoogleGRID.exe")
         }
     Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A") -and ($gpu.Device_ID -ne "DEV_1EB8")) -eq $true) {
