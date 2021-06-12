@@ -422,7 +422,10 @@ $ReadHost = Read-Host "(Y/N)"
            Write-Output  "Success!"
            Write-Output `n "Installing Driver, this may take up to 10 minutes and will automatically reboot if required"
            InstallDriver
-           Write-Output "Success - Driver Installed - Checking if reboot is required"
+
+           Write-Output "Success - Driver Installed"
+           Write-Host "If this is your first time running this script, please make sure you sign into Parsec BEFORE rebooting" -BackgroundColor RED
+           Write-Output "Checking if a reboot is required..."
            rebootlogic
        } 
        N {
