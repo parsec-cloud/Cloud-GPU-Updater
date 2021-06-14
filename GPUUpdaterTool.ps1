@@ -151,6 +151,7 @@ function Reboot {
     param (
     $message)
     if (RequiresReboot){
+        clean-registry-g4dn
         $message
         "Reboot System?"
         $ReadHost = Read-Host "(Y/N)"
@@ -433,6 +434,19 @@ $ReadHost = Read-Host "(Y/N)"
            exit
            } 
      } 
+}
+
+function clean-registry-g4dn {
+if ($gpu.Device_ID -eq "DEV_1EB8") {
+ $Configpaths  = (dir HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Configuration).pspath 
+ $connectivitypaths = (dir HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Connectivity).pspath 
+ foreach ($path in $Configpaths) {
+  remove-item -Path $path -Recurse
+  }
+ foreach ($path in $connectivitypaths){
+  remove-item -Path $path -Recurse
+  }
+ }
 }
 
 function DownloadDriver {
