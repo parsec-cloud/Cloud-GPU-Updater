@@ -239,15 +239,15 @@ Function webDriver {
         $s3path.split('_')[0].split('/')[1]
         }
     Elseif((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
-        AWSUseSavedCreds GPUUpdateAWS
-        AWSPrivatedriver -profileName GPUUpdateAWS -GPU "G4dn"| Out-Null
-        $G4WebDriver = AWSPrivatedriver -profileName GPUUpdateAWS -GPU "G4dn"
+        AWSUseSavedCreds ParsecGPUUpdate
+        AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"| Out-Null
+        $G4WebDriver = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"
         $G4WebDriver.tostring().split('-')[1]
         }
     Elseif((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_7362")) -eq $true){
-        AWSUseSavedCreds GPUUpdateAWS
-        AWSPrivatedriver -profileName GPUUpdateAWS -GPU "G4ad"| Out-Null
-        $G4WebDriver = AWSPrivatedriver -profileName GPUUpdateAWS -GPU "G4ad"
+        AWSUseSavedCreds ParsecGPUUpdate
+        AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4ad"| Out-Null
+        $G4WebDriver = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4ad"
         $G4WebDriver.tostring().split('/')[1].split('-')[0]
         }
     Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
@@ -451,7 +451,7 @@ if ($gpu.Device_ID -eq "DEV_1EB8") {
 
 function DownloadDriver {
     if((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
-        $S3Path = AWSPrivatedriver -profileName GPUUpdateAWS -GPU "G4dn"
+        $S3Path = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"
         (New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
         Expand-Archive -Path ($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath "$($system.Path)\ExtractedGPUDriver\"
         $extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\Windows\" | Where-Object name -like '*win10*' | % name
@@ -463,7 +463,7 @@ function DownloadDriver {
         ClearG4DNCredentials GPUUpdateG4Dn
     }
     Elseif((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_7362")) -eq $true){
-        $S3Path = AWSPrivatedriver -profileName GPUUpdateAWS -GPU "G4ad"
+        $S3Path = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4ad"
         (New-Object System.Net.WebClient).DownloadFile($("https://ec2-amd-windows-drivers.s3.amazonaws.com/" + $s3path), $($system.Path) + "\AMD_" + $($gpu.web_driver) + ".zip")
         Expand-Archive -Path ($($system.Path) + "\AMD_" + $($gpu.web_driver) + ".zip") -DestinationPath "$($system.Path)\ExtractedGPUDriver\"
         $GPU.AMDExtractedPath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\" -recurse -Directory | Where-Object name -like '*WT6A_INF*' | % FullName
