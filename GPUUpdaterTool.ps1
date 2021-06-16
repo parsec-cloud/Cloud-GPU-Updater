@@ -405,6 +405,7 @@ function checkUpdates {
         }
     Else {
         $app.UpToDate
+        ClearG4DNCredentials ParsecGPUUpdate
         Read-Host "Press any key to exit..."
         Exit
     }
