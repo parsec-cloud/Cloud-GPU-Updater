@@ -378,6 +378,7 @@ function confirmcharges {
            Y {
                }
            N {
+               ClearG4DNCredentials ParsecGPUUpdate
                Write-Output "The upgrade script will now exit"
                Exit
                }
