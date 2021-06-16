@@ -460,7 +460,7 @@ function DownloadDriver {
         remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
         remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
         (New-Object System.Net.WebClient).DownloadFile("https://nvidia-gaming.s3.amazonaws.com/GridSwCert-Archive/GridSwCert-Windows_2020_04.cert", "C:\Users\Public\Documents\GridSwCert.txt")
-        ClearG4DNCredentials GPUUpdateG4Dn
+        ClearG4DNCredentials ParsecGPUUpdate
     }
     Elseif((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_7362")) -eq $true){
         $S3Path = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4ad"
