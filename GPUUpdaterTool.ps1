@@ -150,6 +150,7 @@ function RequiresReboot {
 function Reboot {
     param (
     $message)
+    ClearG4DNCredentials -profilename ParsecGPUUpdate 
     if (RequiresReboot){
         clean-registry-g4dn
         $message
