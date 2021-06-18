@@ -440,7 +440,7 @@ $ReadHost = Read-Host "(Y/N)"
 }
 
 function clean-registry-g4dn {
-if ($gpu.Device_ID -eq "DEV_1EB8") {
+if ($($gpu.Device_ID -eq "DEV_1EB8”) -or $($gpu.Device_ID -eq "DEV_15F8”) -or $($gpu.Device_ID -eq "DEV_1BB3”) -or $($gpu.Device_ID -eq "DEV_7362”)) {
  $Configpaths  = (dir HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Configuration).pspath 
  $connectivitypaths = (dir HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Connectivity).pspath 
  foreach ($path in $Configpaths) {
