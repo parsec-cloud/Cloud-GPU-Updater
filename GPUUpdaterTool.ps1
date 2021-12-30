@@ -616,7 +616,7 @@ function rebootLogic {
         ElseIf ($GPU.NV_GRID -eq $true) {
             if ($gpu.Current_Mode -eq "TCC") {
                 setnvsmi
-                setnvsmi-sh
+                setnvsmi-shortcut
                 }
             Reboot -message $System.OS_Reboot_Reason
             }
