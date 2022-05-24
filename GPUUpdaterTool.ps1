@@ -467,9 +467,9 @@ function DownloadDriver {
         $S3Path = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"
         (New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
         Expand-Archive -Path ($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath "$($system.Path)\ExtractedGPUDriver\"
-        $extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\Windows\" | Where-Object name -like '*win10*' | % name
-        Rename-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\$extractedpath" -NewName "NVIDIA_$($gpu.web_driver).exe"
-        Move-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
+        $extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\" | Where-Object name -like '*win10*' | % name
+        Rename-Item -Path "$($system.Path)\ExtractedGPUDriver\$extractedpath" -NewName "NVIDIA_$($gpu.web_driver).exe"
+        Move-Item -Path "$($system.Path)\ExtractedGPUDriver\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
         remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
         remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
         (New-Object System.Net.WebClient).DownloadFile("https://nvidia-gaming.s3.amazonaws.com/GridSwCert-Archive/GridSwCert-Windows_2020_04.cert", "C:\Users\Public\Documents\GridSwCert.txt")
