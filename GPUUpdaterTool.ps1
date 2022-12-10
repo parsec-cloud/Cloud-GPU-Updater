@@ -261,8 +261,8 @@ Function webDriver {
         $G4WebDriver.tostring().split('/')[1].split('-')[0]
         }
     Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
-        $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*GRID1*server2016*.exe" | select -Last 1
-        $googlestoragedriver.split('/')[2].split('_')[0]
+        $googlestoragedriver =(gcloud storage ls gs://nvidia-drivers-us-public/GRID/*) -like  "*server2022*.exe" | select -Last 1
+        $googlestoragedriver.split('/')[5].split('_')[0]
         }
     Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "azure")) -eq $true){
         $azuresupportpage = (Invoke-WebRequest -Uri https://docs.microsoft.com/en-us/azure/virtual-machines/windows/n-series-driver-setup -UseBasicParsing).links.outerhtml -like "*GRID*"
@@ -482,8 +482,8 @@ function DownloadDriver {
         $GPU.AMDExtractedPath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\" -recurse -Directory | Where-Object name -like '*WT6A_INF*' | % FullName
     }
     Elseif ((($gpu.supported -eq "UnOfficial")  -and ($gpu.cloudprovider -eq "Google"))-eq $true) {
-        $googlestoragedriver =([xml](invoke-webrequest -uri https://storage.googleapis.com/nvidia-drivers-us-public).content).listbucketresult.contents.key  -like  "*GRID1*server2016*.exe" | select -last 1
-        (New-Object System.Net.WebClient).DownloadFile($("https://storage.googleapis.com/nvidia-drivers-us-public/" + $googlestoragedriver), "C:\ParsecTemp\Drivers\GoogleGRID.exe")
+        $googlestoragedriver =((gcloud storage ls gs://nvidia-drivers-us-public/GRID/*) -like  "*server2022*.exe" | select -Last 1).TrimStart("gs://")
+        (New-Object System.Net.WebClient).DownloadFile($("https://storage.googleapis.com/" + $googlestoragedriver), "C:\ParsecTemp\Drivers\GoogleGRID.exe")
         }
     Elseif((($gpu.Supported -eq "yes") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -ne "DEV_118A") -and ($gpu.Device_ID -ne "DEV_1EB8")) -eq $true) {
         $s3path = $(([xml](invoke-webrequest -uri https://ec2-windows-nvidia-drivers.s3.amazonaws.com).content).listbucketresult.contents.key -like  "latest/*server2016*") 
