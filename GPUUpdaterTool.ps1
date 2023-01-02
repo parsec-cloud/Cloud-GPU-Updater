@@ -94,7 +94,7 @@ Function AWSPrivatedriver {
         $Bucket = "nvidia-gaming"
         $KeyPrefix = "windows/latest"
         $S3Objects = Get-S3Object -BucketName $Bucket -KeyPrefix $KeyPrefix -Region us-east-1 -ProfileName $profileName
-        $S3Objects.key | select-string -Pattern '.zip' 
+        $S3Objects.key | select-string -Pattern '.exe' 
         }
     elseif ($GPU -eq "G4ad") {
         $Bucket = "ec2-amd-windows-drivers"
@@ -252,7 +252,7 @@ Function webDriver {
         AWSUseSavedCreds ParsecGPUUpdate
         AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"| Out-Null
         $G4WebDriver = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"
-        $G4WebDriver.tostring().split('-')[1]
+        $G4WebDriver.tostring().split('/')[2]
         }
     Elseif((($gpu.Supported -eq "unOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_7362")) -eq $true){
         AWSUseSavedCreds ParsecGPUUpdate
@@ -410,6 +410,7 @@ function prepareEnvironment {
 
 function checkUpdates {
     queryGPU
+    Write-Host ($gpu | Out-String) -ForegroundColor Red
     #starts update if required
     if ($gpu.Update_Available -eq $true) {
         $app.success
@@ -465,13 +466,7 @@ if ($($gpu.Device_ID -eq "DEV_1EB8") -or $($gpu.Device_ID -eq "DEV_15F8") -or $(
 function DownloadDriver {
     if((($gpu.Supported -eq "UnOfficial") -and ($gpu.cloudprovider -eq "aws") -and ($gpu.Device_ID -eq "DEV_1EB8")) -eq $true){
         $S3Path = AWSPrivatedriver -profileName ParsecGPUUpdate -GPU "G4dn"
-        (New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip")
-        Expand-Archive -Path ($($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".zip") -DestinationPath "$($system.Path)\ExtractedGPUDriver\"
-        $extractedpath = Get-ChildItem -Path "$($system.Path)\ExtractedGPUDriver\Windows\" | Where-Object name -like '*win10*' | % name
-        Rename-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\$extractedpath" -NewName "NVIDIA_$($gpu.web_driver).exe"
-        Move-Item -Path "$($system.Path)\ExtractedGPUDriver\Windows\NVIDIA_$($gpu.web_driver).exe" -Destination $system.Path
-        remove-item "$($system.Path)\NVIDIA_$($gpu.web_driver).zip"
-        remove-item "$($system.Path)\ExtractedGPUDriver" -Recurse
+        (New-Object System.Net.WebClient).DownloadFile($("https://nvidia-gaming.s3.amazonaws.com/" + $s3path), $($system.Path) + "\NVIDIA_" + $($gpu.web_driver) + ".exe")
         (New-Object System.Net.WebClient).DownloadFile("https://nvidia-gaming.s3.amazonaws.com/GridSwCert-Archive/GridSwCert-Windows_2020_04.cert", "C:\Users\Public\Documents\GridSwCert.txt")
         ClearG4DNCredentials ParsecGPUUpdate
     }
