@@ -410,7 +410,6 @@ function prepareEnvironment {
 
 function checkUpdates {
     queryGPU
-    Write-Host ($gpu | Out-String) -ForegroundColor Red
     #starts update if required
     if ($gpu.Update_Available -eq $true) {
         $app.success
